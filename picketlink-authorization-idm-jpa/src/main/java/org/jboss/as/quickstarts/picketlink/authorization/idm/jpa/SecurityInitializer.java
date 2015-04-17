@@ -34,7 +34,8 @@ import static org.picketlink.idm.model.basic.BasicModel.grantGroupRole;
 import static org.picketlink.idm.model.basic.BasicModel.grantRole;
 
 /**
- * This startup bean creates a number of default users, groups and roles when the application is started.
+ * This startup bean creates a number of default users, groups and roles when
+ * the application is started.
  * 
  * @author Shane Bryzak
  */
@@ -42,60 +43,69 @@ import static org.picketlink.idm.model.basic.BasicModel.grantRole;
 @Startup
 public class SecurityInitializer {
 
-    @Inject
-    private PartitionManager partitionManager;
+	/*
+	 * Since the IdentityManager and RelationshipManager beans are request
+	 * scoped beans (as per the above table) it is not possible to inject them
+	 * directly into a @Startup bean as there is no request scope available at
+	 * application startup time. Instead, if you wish to use the IDM API within
+	 * a @Startup bean in your Java EE application you may inject the
+	 * PartitionManager (which is application-scoped) from which you can then
+	 * get references to the IdentityManager and RelationshipManager:
+	 */
+	@Inject
+	private PartitionManager partitionManager;
 
-    @PostConstruct
-    public void create() {
+	@PostConstruct
+	public void create() {
 
-        // Create user john
-        User john = new User("john");
-        john.setEmail("john@acme.com");
-        john.setFirstName("John");
-        john.setLastName("Smith");
+		// Create user john
+		User john = new User("john");
+		john.setEmail("john@acme.com");
+		john.setFirstName("John");
+		john.setLastName("Smith");
 
-        IdentityManager identityManager = this.partitionManager.createIdentityManager();
+		IdentityManager identityManager = this.partitionManager.createIdentityManager();
 
-        identityManager.add(john);
-        identityManager.updateCredential(john, new Password("demo"));
+		identityManager.add(john);
+		identityManager.updateCredential(john, new Password("demo"));
 
-        // Create user mary
-        User mary = new User("mary");
-        mary.setEmail("mary@acme.com");
-        mary.setFirstName("Mary");
-        mary.setLastName("Jones");
-        identityManager.add(mary);
-        identityManager.updateCredential(mary, new Password("demo"));
+		// Create user mary
+		User mary = new User("mary");
+		mary.setEmail("mary@acme.com");
+		mary.setFirstName("Mary");
+		mary.setLastName("Jones");
+		identityManager.add(mary);
+		identityManager.updateCredential(mary, new Password("demo"));
 
-        // Create user jane
-        User jane = new User("jane");
-        jane.setEmail("jane@acme.com");
-        jane.setFirstName("Jane");
-        jane.setLastName("Doe");
-        identityManager.add(jane);
-        identityManager.updateCredential(jane, new Password("demo"));
+		// Create user jane
+		User jane = new User("jane");
+		jane.setEmail("jane@acme.com");
+		jane.setFirstName("Jane");
+		jane.setLastName("Doe");
+		identityManager.add(jane);
+		identityManager.updateCredential(jane, new Password("demo"));
 
-        // Create role "manager"
-        Role manager = new Role("manager");
-        identityManager.add(manager);
+		// Create role "manager"
+		Role manager = new Role("manager");
+		identityManager.add(manager);
 
-        // Create application role "superuser"
-        Role superuser = new Role("superuser");
-        identityManager.add(superuser);
+		// Create application role "superuser"
+		Role superuser = new Role("superuser");
+		identityManager.add(superuser);
 
-        // Create group "sales"
-        Group sales = new Group("sales");
-        identityManager.add(sales);
+		// Create group "sales"
+		Group sales = new Group("sales");
+		identityManager.add(sales);
 
-        RelationshipManager relationshipManager = this.partitionManager.createRelationshipManager();
+		RelationshipManager relationshipManager = this.partitionManager.createRelationshipManager();
 
-        // Make john a member of the "sales" group
-        addToGroup(relationshipManager, john, sales);
+		// Make john a member of the "sales" group
+		addToGroup(relationshipManager, john, sales);
 
-        // Make mary a manager of the "sales" group
-        grantGroupRole(relationshipManager, mary, manager, sales);
+		// Make mary a manager of the "sales" group
+		grantGroupRole(relationshipManager, mary, manager, sales);
 
-        // Grant the "superuser" application role to jane
-        grantRole(relationshipManager, jane, superuser);
-    }
+		// Grant the "superuser" application role to jane
+		grantRole(relationshipManager, jane, superuser);
+	}
 }
